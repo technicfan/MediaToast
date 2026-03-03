@@ -21,7 +21,6 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.KeyMapping.Category;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.OptionInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -42,8 +41,10 @@ public class MprisToastClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         registerKeybindings();
-        MediaTracker.init(Minecraft.getInstance(), loadConfig());
-        createToggles();
+        ClientLifecycleEvents.CLIENT_STARTED.register(client -> {
+            MediaTracker.init(client, loadConfig());
+            createToggles();
+        });
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
             MediaTracker.close();
         });

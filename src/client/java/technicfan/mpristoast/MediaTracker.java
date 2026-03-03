@@ -44,23 +44,15 @@ public class MediaTracker {
             for (String name : getActivePlayers()) {
                 busNames.put(name, getPlayerName(name));
             }
-            CompletableFuture.runAsync(() -> {
-                try {
-                    // somehow font.width() does not work correctly right at the beginning
-                    Thread.sleep(2000);
-                    if (busNames.containsKey(CONFIG.getBusName())) {
-                        currentTrack = new Track(CONFIG.getBusName(), client, true);
-                    } else {
-                        for (String name : busNames.keySet()) {
-                            if (currentTrack == null) {
-                                currentTrack = new Track(name, client, true);
-                            }
-                        }
+            if (busNames.containsKey(CONFIG.getBusName())) {
+                currentTrack = new Track(CONFIG.getBusName(), true);
+            } else {
+                for (String name : busNames.keySet()) {
+                    if (currentTrack == null) {
+                        currentTrack = new Track(name, true);
                     }
-                } catch (InterruptedException e) {
-                    MprisToastClient.LOGGER.error(e.toString());
                 }
-            });
+            }
             // listen for name owner changes to reset the values in case the player
             // terminates
             nameChangedHandler = conn.addSigHandler(NameOwnerChanged.class, new NameOwnerChangedHandler());
@@ -109,7 +101,7 @@ public class MediaTracker {
     protected static void updatePreferred() {
         if (busNames.containsKey(CONFIG.getBusName())
                 && (currentTrack == null || !currentTrack.busName().equals(CONFIG.getBusName()))) {
-            currentTrack = new Track(CONFIG.getBusName(), client, true);
+            currentTrack = new Track(CONFIG.getBusName(), true);
             showToast();
         } else if (CONFIG.getOnlyPreferred()) {
             currentTrack = null;
@@ -156,14 +148,8 @@ public class MediaTracker {
 
     protected static void refresh() {
         if (currentTrack != null) {
-            currentTrack = currentTrack.refresh(client, false);
+            currentTrack = currentTrack.refresh();
             showToast();
-        }
-    }
-
-    public static void refreshScroller() {
-        if (currentTrack != null) {
-            currentTrack = currentTrack.refresh(client, true);
         }
     }
 
@@ -173,7 +159,7 @@ public class MediaTracker {
             int index = keys.indexOf(currentTrack == null ? "" : currentTrack.busName());
             int newIndex = index + 1 == busNames.size() ? 0 : index + 1;
             if (index != newIndex) {
-                currentTrack = new Track(keys.get(newIndex), client, true);
+                currentTrack = new Track(keys.get(newIndex), true);
                 showToast();
             }
         } else if (busNames.size() == 0) {
@@ -241,7 +227,7 @@ public class MediaTracker {
                 if (currentTrack != null && signal.name.equals(currentTrack.busName())) {
                     if (!CONFIG.getOnlyPreferred()) {
                         if (busNames.containsKey(CONFIG.getBusName())) {
-                            currentTrack = new Track(CONFIG.getBusName(), client, true);
+                            currentTrack = new Track(CONFIG.getBusName(), true);
                             showToast();
                         } else {
                             cyclePlayers();
@@ -254,7 +240,7 @@ public class MediaTracker {
                 busNames.put(signal.name, getPlayerName(signal.name));
                 if (signal.name.equals(CONFIG.getBusName())
                         || (currentTrack == null && !CONFIG.getOnlyPreferred())) {
-                    currentTrack = new Track(signal.name, client, false);
+                    currentTrack = new Track(signal.name, false);
                     showToast();
                 }
             }
@@ -268,7 +254,6 @@ public class MediaTracker {
                 // check if signal came from the currently selected player
                 if (currentTrack != null && dbus.GetNameOwner(currentTrack.busName()).equals(signal.getSource())) {
                     currentTrack = currentTrack.update(signal.getPropertiesChanged(), signal.getPropertiesRemoved(),
-                            client,
                             false);
                     showToast();
                 }

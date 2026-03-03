@@ -10,8 +10,6 @@ import org.freedesktop.dbus.exceptions.DBusExecutionException;
 import org.freedesktop.dbus.interfaces.Properties;
 import org.freedesktop.dbus.types.Variant;
 
-import net.minecraft.client.Minecraft;
-
 public class Track {
     private final String busName;
     private final Player player;
@@ -21,11 +19,11 @@ public class Track {
     private final boolean changed;
     private final boolean existing;
 
-    protected Track(String busName, Minecraft client, boolean existing) {
+    protected Track(String busName, boolean existing) {
         this.busName = busName;
         this.existing = existing;
         this.player = getPlayer();
-        Track temp = update(getAllValues(), null, client, true);
+        Track temp = update(getAllValues(), null, true);
         this.name = temp.name;
         this.scroller = temp.scroller;
         this.active = temp.active;
@@ -97,19 +95,15 @@ public class Track {
             player.Previous();
     }
 
-    protected Track refresh(Minecraft client, boolean onlyScroller) {
-        if (onlyScroller) {
-            return update(name, client, active, existing, true);
-        } else {
-            return update(getAllValues(), null, client, true, true);
-        }
+    protected Track refresh() {
+        return update(getAllValues(), null, true);
     }
 
-    private Track update(String name, Minecraft client, boolean active, boolean existing, boolean refresh) {
+    private Track update(String name, boolean active, boolean existing) {
         Scroller scroller = this.scroller;
         boolean changed = !name.equals(this.name);
-        if (changed || refresh) {
-            scroller = new Scroller(name, client);
+        if (changed) {
+            scroller = new Scroller(name);
         }
         return new Track(busName, player, name, scroller, active, !name.equals(this.name), existing);
     }
@@ -118,11 +112,7 @@ public class Track {
         return new Track(busName, player, name, scroller, active, false, existing);
     }
 
-    protected Track update(Map<String, Variant<?>> data, List<String> removed, Minecraft client, boolean init) {
-        return update(data, removed, client, init, false);
-    }
-
-    private Track update(Map<String, Variant<?>> data, List<String> removed, Minecraft client, boolean init, boolean refresh) {
+    protected Track update(Map<String, Variant<?>> data, List<String> removed, boolean init) {
         String name = this.name != null ? this.name : "";
         boolean active = this.active;
         boolean existing = this.existing;
@@ -148,7 +138,7 @@ public class Track {
             }
             name = getTrackName(metadata);
         }
-        return update(name, client, active, existing, refresh);
+        return update(name, active, existing);
     }
 
     private Player getPlayer() {

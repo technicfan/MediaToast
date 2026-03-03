@@ -30,7 +30,7 @@ public class NowPlayingToastMixin {
     )
     private static int width(Font font, FormattedText text) {
         if (MediaTracker.show()) {
-            return MediaTracker.getScroller().width();
+            return MediaTracker.getScroller().width(font);
         } else {
             return font.width(text);
         }

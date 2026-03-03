@@ -12,7 +12,7 @@ public class Scroller {
     private static final int maxWidth = 175;
     private static final int scrollTime = 40;
     private static final float scrollStep = 0.4f;
-    private static final float scrollRelation = scrollStep / scrollTime;
+    private static final float scrollRelation = 0.01f;
 
     private final String name;
     private final int height;

@@ -154,10 +154,16 @@ public class MediaTracker {
         }
     }
 
-    public static void refresh() {
+    protected static void refresh() {
         if (currentTrack != null) {
-            currentTrack = currentTrack.refresh(client);
+            currentTrack = currentTrack.refresh(client, false);
             showToast();
+        }
+    }
+
+    public static void refreshScroller() {
+        if (currentTrack != null) {
+            currentTrack = currentTrack.refresh(client, true);
         }
     }
 

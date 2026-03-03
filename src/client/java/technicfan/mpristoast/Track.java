@@ -97,8 +97,12 @@ public class Track {
             player.Previous();
     }
 
-    protected Track refresh(Minecraft client) {
-        return update(getAllValues(), null, client, true, true);
+    protected Track refresh(Minecraft client, boolean onlyScroller) {
+        if (onlyScroller) {
+            return update(name, client, active, existing, true);
+        } else {
+            return update(getAllValues(), null, client, true, true);
+        }
     }
 
     private Track update(String name, Minecraft client, boolean active, boolean existing, boolean refresh) {

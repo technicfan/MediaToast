@@ -8,7 +8,8 @@
         "NowPlayingToastMixin",
         "OptionsSubScreenAccessor",
         "PauseScreenMixin",
-        "SoundOptionsScreenMixin"
+        "SoundOptionsScreenMixin",
+        "FontManagerMixin"
     ],
     "injectors": {
         "defaultRequire": 1

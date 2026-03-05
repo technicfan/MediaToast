@@ -1,9 +1,5 @@
 # MprisToast
 
-## Important
-
-This mod is Linux only
-
 ## Description
 
 This (fabric) mod shows the media currently playing on your system using the vanilla music toast feature on 1.21.10 and 1.21.11 (currently).
@@ -34,8 +30,8 @@ All options are located in the vanilla sound settings under the option to enable
 
 ### Libraries used
 
-- [dbus-java](https://github.com/hypfvieh/dbus-java)
-    - Improved version of java DBus library provided by freedesktop.org [https://dbus.freedesktop.org/doc/dbus-java](https://dbus.freedesktop.org/doc/dbus-java)
+- [mediainterface](https://github.com/EndlessSource/mediainterface)
+    - Access the operating systems "Media Remote"/Now Playing interface from Java/Kotlin.
 
 ### License
 

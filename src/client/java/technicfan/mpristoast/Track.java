@@ -1,54 +1,44 @@
 package technicfan.mpristoast;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.freedesktop.dbus.exceptions.DBusException;
-import org.freedesktop.dbus.exceptions.DBusExecutionException;
-import org.freedesktop.dbus.interfaces.Properties;
-import org.freedesktop.dbus.types.Variant;
+import org.endlesssource.mediainterface.api.MediaSession;
+import org.endlesssource.mediainterface.api.MediaTransportControls;
+import org.endlesssource.mediainterface.api.NowPlaying;
+import org.endlesssource.mediainterface.api.PlaybackState;
 
 public class Track {
     private final String busName;
-    private final Player player;
+    private final MediaTransportControls controls;
     private final String name;
     private final long startTime;
     private final boolean active;
     private final boolean changed;
-    private final boolean existing;
 
-    protected Track(String busName, boolean existing) {
-        this.busName = busName;
-        this.existing = existing;
-        this.player = getPlayer();
-        Track temp = update(getAllValues(), null, true);
-        this.name = temp.name;
-        this.startTime = System.currentTimeMillis();
-        this.active = temp.active;
-        this.changed = temp.changed;
+    protected Track(String busName) {
+        this(MediaTracker.getSessionById(busName), busName);
     }
 
-    protected Track(String busName, Player player) {
+    private Track(MediaSession session, String busName) {
         this.busName = busName;
-        this.player = player;
-        this.name = "";
+        if (session != null) {
+            this.controls = session.getControls();
+            this.name = session.getNowPlaying().isPresent() ? getTrackName(session.getNowPlaying().get()) : "";
+            this.active = !controls.getPlaybackState().equals(PlaybackState.STOPPED);
+        } else {
+            this.controls = null;
+            this.name = "";
+            this.active = false;
+        }
         this.startTime = System.currentTimeMillis();
-        this.active = false;
         this.changed = true;
-        this.existing = true;
     }
 
-    private Track(String busName, Player player, String name, long startTime, boolean active, boolean changed,
-            boolean existing) {
+    private Track(String busName, MediaTransportControls controls, String name, long startTime, boolean active, boolean changed) {
         this.busName = busName;
-        this.player = player;
         this.name = name;
+        this.controls = controls;
         this.startTime = startTime;
         this.active = active;
         this.changed = changed;
-        this.existing = existing;
     }
 
     protected String busName() {
@@ -68,119 +58,67 @@ public class Track {
     }
 
     protected void playPause() {
-        if (player != null)
-            player.PlayPause();
+        if (controls != null)
+            controls.togglePlayPause();
     }
 
     protected void play() {
-        if (player != null)
-            player.Play();
+        if (controls != null)
+           controls.play();
     }
 
     protected void pause() {
-        if (player != null)
-            player.Pause();
+        if (controls != null)
+            controls.pause();
     }
 
     protected void next() {
-        if (player != null)
-            player.Next();
+        if (controls != null)
+            controls.next();
     }
 
     protected void previous() {
-        if (player != null)
-            player.Previous();
+        if (controls != null)
+            controls.previous();
     }
 
     protected Track refresh() {
-        return update(getAllValues(), null, true);
+        String name = "";
+        boolean active = false;
+        MediaSession session = MediaTracker.getSessionById(busName);
+        if (session != null) {
+            name = session.getNowPlaying().isPresent() ? getTrackName(session.getNowPlaying().get()) : "";
+            active = !controls.getPlaybackState().equals(PlaybackState.STOPPED);
+        } else {
+            name = "";
+            active = false;
+        }
+        return update(name, active);
     }
 
-    private Track update(String name, boolean active, boolean existing) {
+    private static String getTrackName(NowPlaying info) {
+        return info.getArtist().isPresent() ? String.format("%s - %s", info.getArtist().get(), info.getTitle().get()) : info.getTitle().get();
+    }
+
+    protected Track update(NowPlaying info) {
+        return update(getTrackName(info), active);
+    }
+
+    protected Track update(boolean active) {
+        return update(name, active);
+    }
+
+    private Track update(String name, boolean active) {
         long startTime = this.startTime;
         boolean changed = !name.equals(this.name);
         if (changed) {
             startTime = System.currentTimeMillis();
         }
-        return new Track(busName, player, name, startTime, active, !name.equals(this.name), existing);
+        return new Track(busName, controls, name, startTime, active, !name.equals(this.name));
     }
 
     protected Track update() {
-        return new Track(busName, player, name, startTime, active, false, existing);
-    }
-
-    protected Track update(Map<String, Variant<?>> data, List<String> removed, boolean init) {
-        String name = this.name != null ? this.name : "";
-        boolean active = this.active;
-        boolean existing = this.existing;
-        if (!existing || init) {
-            data = getAllValues();
-            removed = null;
-            if (!existing && !init)
-                existing = true;
-        }
-        if (removed != null && removed.contains("Metadata")) {
-            return null;
-        }
-        if (data.containsKey("PlaybackStatus")) {
-            active = !data.get("PlaybackStatus").getValue().toString().equals("Stopped");
-        }
-        if (data.containsKey("Metadata")) {
-            Map<?, ?> newMetadata = (Map<?, ?>) data
-                    .get("Metadata")
-                    .getValue();
-            Map<String, Object> metadata = new HashMap<>();
-            for (Map.Entry<?, ?> entry : newMetadata.entrySet()) {
-                metadata.put((String) entry.getKey(), ((Variant<?>) entry.getValue()).getValue());
-            }
-            name = getTrackName(metadata);
-        }
-        return update(name, active, existing);
-    }
-
-    private Player getPlayer() {
-        synchronized (MediaTracker.conn) {
-            try {
-                return MediaTracker.conn.getRemoteObject(busName, "/org/mpris/MediaPlayer2", Player.class);
-            } catch (DBusException e) {
-                MprisToastClient.LOGGER.warn(e.toString(), e.fillInStackTrace());
-            }
-            return null;
-        }
-    }
-
-    private Map<String, Variant<?>> getAllValues() {
-        try {
-            synchronized (MediaTracker.conn) {
-                Properties properties = MediaTracker.conn
-                        .getRemoteObject(busName, "/org/mpris/MediaPlayer2", Properties.class);
-                Map<String, Variant<?>> data = properties.GetAll("org.mpris.MediaPlayer2.Player");
-                data.putAll(properties.GetAll("org.mpris.MediaPlayer2"));
-                return data;
-            }
-        } catch (DBusException | DBusExecutionException e) {
-            MprisToastClient.LOGGER.warn(e.toString(), e.fillInStackTrace());
-        }
-        return new HashMap<>();
-    }
-
-    private String getTrackName(Map<String, ?> metadata) {
-        String track = "", artist = "";
-        Object trackObj, artistsObj;
-        artistsObj = metadata.get("xesam:artist");
-        trackObj = metadata.get("xesam:title");
-        if (artistsObj != null && artistsObj instanceof List) {
-            List<?> tempList = (List<?>) artistsObj;
-            List<String> list = new ArrayList<>();
-            for (Object name : tempList) {
-                list.add((String) name);
-            }
-            artist = list.isEmpty() ? "" : list.get(0);
-        }
-        if (trackObj != null && trackObj instanceof String) {
-            track = (String) trackObj;
-        }
-        return artist.isEmpty() ? track : String.format("%s - %s", artist, track);
+        return new Track(busName, controls, name, startTime, active, false);
     }
 
     protected float currentScrollOffset(int width) {

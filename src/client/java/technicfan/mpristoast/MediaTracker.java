@@ -1,7 +1,9 @@
 package technicfan.mpristoast;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Stream;
@@ -9,17 +11,14 @@ import java.util.stream.Stream;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.toasts.ToastManager;
 import net.minecraft.sounds.SoundSource;
-import org.freedesktop.dbus.connections.impl.DBusConnection;
-import org.freedesktop.dbus.connections.impl.DBusConnectionBuilder;
-import org.freedesktop.dbus.errors.ServiceUnknown;
-import org.freedesktop.dbus.exceptions.DBusException;
-import org.freedesktop.dbus.exceptions.DBusExecutionException;
-import org.freedesktop.dbus.handlers.AbstractPropertiesChangedHandler;
-import org.freedesktop.dbus.interfaces.DBus;
-import org.freedesktop.dbus.interfaces.DBusSigHandler;
-import org.freedesktop.dbus.interfaces.Properties;
-import org.freedesktop.dbus.interfaces.DBus.NameOwnerChanged;
-import org.freedesktop.dbus.interfaces.Properties.PropertiesChanged;
+
+import org.endlesssource.mediainterface.SystemMediaFactory;
+import org.endlesssource.mediainterface.api.MediaSession;
+import org.endlesssource.mediainterface.api.MediaSessionListener;
+import org.endlesssource.mediainterface.api.NowPlaying;
+import org.endlesssource.mediainterface.api.PlaybackState;
+import org.endlesssource.mediainterface.api.SystemMediaInterface;
+import org.endlesssource.mediainterface.api.SystemMediaOptions;
 
 public class MediaTracker {
     private static Config CONFIG;
@@ -28,10 +27,9 @@ public class MediaTracker {
     public static final int maxWidth = 175;
     protected static final float pixelPerMs = 1f / 96;
 
-    private static DBus dbus;
-    protected static DBusConnection conn;
+    private static SystemMediaInterface media;
     private static Minecraft client;
-    private static AutoCloseable nameChangedHandler, propertiesChangedHandler;
+    private static MediaSessionListener listener = new MediaSessionHandler();
     private static ConcurrentMap<String, String> busNames = new ConcurrentHashMap<>();
     private static Track currentTrack;
 
@@ -40,27 +38,53 @@ public class MediaTracker {
         CONFIG = config;
 
         try {
-            conn = DBusConnectionBuilder.forSessionBus().build();
-            dbus = conn.getRemoteObject("org.freedesktop.DBus", "/", DBus.class);
-            for (String name : getActivePlayers()) {
-                busNames.put(name, getPlayerName(name));
+            media = SystemMediaFactory.createSystemInterface(SystemMediaOptions.defaults()
+                    .withSessionPollInterval(Duration.ofMillis(200)));
+            for (MediaSession session : media.getAllSessions()) {
+                busNames.put(session.getSessionId(), session.getApplicationName());
             }
             if (busNames.containsKey(CONFIG.getBusName())) {
-                currentTrack = new Track(CONFIG.getBusName(), true);
+                setCurrentTrack(new Track(CONFIG.getBusName()));
             } else {
                 for (String name : busNames.keySet()) {
                     if (currentTrack == null) {
-                        currentTrack = new Track(name, true);
+                        setCurrentTrack(new Track(name));
                     }
                 }
             }
-            // listen for name owner changes to reset the values in case the player
-            // terminates
-            nameChangedHandler = conn.addSigHandler(NameOwnerChanged.class, new NameOwnerChangedHandler());
-            propertiesChangedHandler = conn.addSigHandler(PropertiesChanged.class, new PropChangedHandler());
+
+            media.addSessionListener(listener);
         } catch (Exception e) {
-            MprisToastClient.LOGGER.error(e.toString(), e.fillInStackTrace());
+            MprisToastClient.LOGGER.error("Event-driven example failed", e);
         }
+    }
+
+    private static void setCurrentTrack(Track newTrack) {
+        MediaSession session;
+        if (currentTrack != null) {
+            session = getSessionById(currentTrack.busName());
+            if (session != null) {
+                session.removeListener(listener);
+            }
+        }
+        if (newTrack != null) {
+            session = getSessionById(newTrack.busName());
+            if (session != null) {
+                session.addListener(listener);
+            }
+        }
+        currentTrack = newTrack;
+    }
+
+    protected static MediaSession getSessionById(String id) {
+        if (media != null) {
+            for (MediaSession session : media.getAllSessions()) {
+                if (session.getSessionId().equals(id)) {
+                    return session;
+                }
+            }
+        }
+        return null;
     }
 
     private static void showToast() {
@@ -102,25 +126,13 @@ public class MediaTracker {
     protected static void updatePreferred() {
         if (busNames.containsKey(CONFIG.getBusName())
                 && (currentTrack == null || !currentTrack.busName().equals(CONFIG.getBusName()))) {
-            currentTrack = new Track(CONFIG.getBusName(), true);
+            setCurrentTrack(new Track(CONFIG.getBusName()));
             showToast();
         } else if (CONFIG.getOnlyPreferred()) {
-            currentTrack = null;
+            setCurrentTrack(null);
         } else if (currentTrack == null) {
             cyclePlayers();
         }
-    }
-
-    private static List<String> getActivePlayers() {
-        List<String> players = new ArrayList<>();
-        if (dbus != null) {
-            for (String name : dbus.ListNames()) {
-                if (name.startsWith(busPrefix)) {
-                    players.add(name);
-                }
-            }
-        }
-        return players;
     }
 
     protected static Stream<String> getPlayerStream() {
@@ -135,13 +147,9 @@ public class MediaTracker {
 
     protected static void close() {
         try {
-            MprisToastClient.LOGGER.info("Closing DBus connection and signal listeners");
-            if (nameChangedHandler != null)
-                nameChangedHandler.close();
-            if (propertiesChangedHandler != null)
-                propertiesChangedHandler.close();
-            if (conn != null)
-                conn.close();
+            MprisToastClient.LOGGER.info("Closing Media connection");
+            if (media != null)
+                media.close();
         } catch (Exception e) {
             MprisToastClient.LOGGER.warn(e.toString(), e.fillInStackTrace());
         }
@@ -160,11 +168,11 @@ public class MediaTracker {
             int index = keys.indexOf(currentTrack == null ? "" : currentTrack.busName());
             int newIndex = index + 1 == busNames.size() ? 0 : index + 1;
             if (index != newIndex) {
-                currentTrack = new Track(keys.get(newIndex), true);
+                setCurrentTrack(new Track(keys.get(newIndex)));
                 showToast();
             }
         } else if (busNames.size() == 0) {
-            currentTrack = null;
+            setCurrentTrack(null);
         }
     }
 
@@ -198,18 +206,6 @@ public class MediaTracker {
         }
     }
 
-    private static String getPlayerName(String busName) {
-        synchronized (conn) {
-            try {
-                return (String) MediaTracker.conn.getRemoteObject(busName,
-                        "/org/mpris/MediaPlayer2", Properties.class)
-                        .Get("org.mpris.MediaPlayer2", "Identity");
-            } catch (DBusException | ServiceUnknown e) {
-            }
-        }
-        return busName.replaceFirst(busPrefix, "");
-    }
-
     protected static String getDisplayName(String name) {
         if (busNames.containsKey(busPrefix + name)) {
             return busNames.get(busPrefix + name);
@@ -220,53 +216,45 @@ public class MediaTracker {
         }
     }
 
-    private static class NameOwnerChangedHandler implements DBusSigHandler<DBus.NameOwnerChanged> {
+    private static class MediaSessionHandler implements MediaSessionListener {
         @Override
-        public void handle(DBus.NameOwnerChanged signal) {
-            if (busNames.containsKey(signal.name) && signal.newOwner.isEmpty() && !signal.oldOwner.isEmpty()) {
-                busNames.remove(signal.name);
-                if (currentTrack != null && signal.name.equals(currentTrack.busName())) {
-                    if (!CONFIG.getOnlyPreferred()) {
-                        if (busNames.containsKey(CONFIG.getBusName())) {
-                            currentTrack = new Track(CONFIG.getBusName(), true);
-                            showToast();
-                        } else {
-                            cyclePlayers();
-                        }
+        public void onSessionAdded(MediaSession session) {
+            busNames.put(session.getSessionId(), session.getApplicationName());
+            if (session.getSessionId().equals(CONFIG.getBusName())
+                    || (currentTrack == null && !CONFIG.getOnlyPreferred())) {
+                setCurrentTrack(new Track(session.getSessionId()));
+                showToast();
+            }
+        }
+
+        @Override
+        public void onSessionRemoved(String sessionId) {
+            busNames.remove(sessionId);
+            if (currentTrack != null && sessionId.equals(currentTrack.busName())) {
+                if (!CONFIG.getOnlyPreferred()) {
+                    if (busNames.containsKey(CONFIG.getBusName())) {
+                        setCurrentTrack(new Track(CONFIG.getBusName()));
+                        showToast();
                     } else {
-                        currentTrack = null;
+                        cyclePlayers();
                     }
-                }
-            } else if (signal.name.startsWith(busPrefix) && !signal.newOwner.isEmpty() && signal.oldOwner.isEmpty()) {
-                busNames.put(signal.name, getPlayerName(signal.name));
-                if (signal.name.equals(CONFIG.getBusName())
-                        || (currentTrack == null && !CONFIG.getOnlyPreferred())) {
-                    currentTrack = new Track(signal.name, false);
-                    showToast();
+                } else {
+                    setCurrentTrack(null);
                 }
             }
         }
-    }
 
-    private static class PropChangedHandler extends AbstractPropertiesChangedHandler {
         @Override
-        public void handle(PropertiesChanged signal) {
-            try {
-                // check if signal came from the currently selected player
-                if (currentTrack != null && dbus.GetNameOwner(currentTrack.busName()).equals(signal.getSource())) {
-                    currentTrack = currentTrack.update(signal.getPropertiesChanged(), signal.getPropertiesRemoved(),
-                            false);
-                    showToast();
-                }
-                for (String name : busNames.keySet()) {
-                    if (dbus.GetNameOwner(name).equals(signal.getSource())) {
-                        if (signal.getPropertiesChanged().containsKey("Identity")) {
-                            busNames.put(name, (String) signal.getPropertiesChanged().get("Identity").getValue());
-                        }
-                    }
-                }
-            } catch (DBusExecutionException e) {
+        public void onNowPlayingChanged(MediaSession session, Optional<NowPlaying> nowPlaying) {
+            if (nowPlaying.isPresent()) {
+                currentTrack = currentTrack.update(nowPlaying.get());
+                showToast();
             }
+        }
+
+        @Override
+        public void onPlaybackStateChanged(MediaSession session, PlaybackState state) {
+            currentTrack = currentTrack.update(!state.equals(PlaybackState.STOPPED));
         }
     }
 }

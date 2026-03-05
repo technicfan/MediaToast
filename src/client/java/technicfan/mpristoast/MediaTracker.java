@@ -1,6 +1,5 @@
 package technicfan.mpristoast;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -23,14 +22,13 @@ import org.endlesssource.mediainterface.api.SystemMediaOptions;
 public class MediaTracker {
     private static Config CONFIG;
 
-    protected static final String busPrefix = "org.mpris.MediaPlayer2.";
     public static final int maxWidth = 175;
     protected static final float pixelPerMs = 1f / 96;
 
     private static SystemMediaInterface media;
     private static Minecraft client;
     private static MediaSessionListener listener = new MediaSessionHandler();
-    private static ConcurrentMap<String, String> busNames = new ConcurrentHashMap<>();
+    private static ConcurrentMap<String, String> sessions = new ConcurrentHashMap<>();
     private static Track currentTrack;
 
     protected static void init(Minecraft minecraft, Config config) {
@@ -38,15 +36,14 @@ public class MediaTracker {
         CONFIG = config;
 
         try {
-            media = SystemMediaFactory.createSystemInterface(SystemMediaOptions.defaults()
-                    .withSessionPollInterval(Duration.ofMillis(200)));
+            media = SystemMediaFactory.createSystemInterface(SystemMediaOptions.defaults());
             for (MediaSession session : media.getAllSessions()) {
-                busNames.put(session.getSessionId(), session.getApplicationName());
+                sessions.put(session.getSessionId(), session.getApplicationName());
             }
-            if (busNames.containsKey(CONFIG.getBusName())) {
-                setCurrentTrack(new Track(CONFIG.getBusName()));
+            if (sessions.containsKey(CONFIG.getPreferred())) {
+                setCurrentTrack(new Track(CONFIG.getPreferred()));
             } else {
-                for (String name : busNames.keySet()) {
+                for (String name : sessions.keySet()) {
                     if (currentTrack == null) {
                         setCurrentTrack(new Track(name));
                     }
@@ -62,13 +59,13 @@ public class MediaTracker {
     private static void setCurrentTrack(Track newTrack) {
         MediaSession session;
         if (currentTrack != null) {
-            session = getSessionById(currentTrack.busName());
+            session = getSessionById(currentTrack.sessionId());
             if (session != null) {
                 session.removeListener(listener);
             }
         }
         if (newTrack != null) {
-            session = getSessionById(newTrack.busName());
+            session = getSessionById(newTrack.sessionId());
             if (session != null) {
                 session.addListener(listener);
             }
@@ -84,6 +81,7 @@ public class MediaTracker {
                 }
             }
         }
+        MprisToastClient.LOGGER.info(":skull:");
         return null;
     }
 
@@ -124,10 +122,11 @@ public class MediaTracker {
     }
 
     protected static void updatePreferred() {
-        if (busNames.containsKey(CONFIG.getBusName())
-                && (currentTrack == null || !currentTrack.busName().equals(CONFIG.getBusName()))) {
-            setCurrentTrack(new Track(CONFIG.getBusName()));
-            showToast();
+        if (sessions.containsKey(CONFIG.getPreferred())) {
+            if (currentTrack == null || !currentTrack.sessionId().equals(CONFIG.getPreferred())) {
+                setCurrentTrack(new Track(CONFIG.getPreferred()));
+                showToast();
+            }
         } else if (CONFIG.getOnlyPreferred()) {
             setCurrentTrack(null);
         } else if (currentTrack == null) {
@@ -136,8 +135,7 @@ public class MediaTracker {
     }
 
     protected static Stream<String> getPlayerStream() {
-        List<String> players = new ArrayList<>(busNames.keySet());
-        players.replaceAll(p -> p.replaceFirst(busPrefix, ""));
+        List<String> players = new ArrayList<>(sessions.keySet());
         if (CONFIG.getPreferred().isEmpty() || players.contains(CONFIG.getPreferred())) {
             return Stream.concat(Stream.of(""), players.stream());
         } else {
@@ -163,15 +161,15 @@ public class MediaTracker {
     }
 
     protected static void cyclePlayers() {
-        if (busNames.size() > 0 && !CONFIG.getOnlyPreferred()) {
-            List<String> keys = new ArrayList<>(busNames.keySet());
-            int index = keys.indexOf(currentTrack == null ? "" : currentTrack.busName());
-            int newIndex = index + 1 == busNames.size() ? 0 : index + 1;
+        if (sessions.size() > 0 && !CONFIG.getOnlyPreferred()) {
+            List<String> keys = new ArrayList<>(sessions.keySet());
+            int index = keys.indexOf(currentTrack == null ? "" : currentTrack.sessionId());
+            int newIndex = index + 1 == sessions.size() ? 0 : index + 1;
             if (index != newIndex) {
                 setCurrentTrack(new Track(keys.get(newIndex)));
                 showToast();
             }
-        } else if (busNames.size() == 0) {
+        } else if (sessions.size() == 0) {
             setCurrentTrack(null);
         }
     }
@@ -207,8 +205,8 @@ public class MediaTracker {
     }
 
     protected static String getDisplayName(String name) {
-        if (busNames.containsKey(busPrefix + name)) {
-            return busNames.get(busPrefix + name);
+        if (sessions.containsKey(name)) {
+            return sessions.get(name).replaceFirst("\\.exe$", "");
         } else if (name.equals(CONFIG.getPreferred()) && !CONFIG.getDisplayName().isEmpty()) {
             return CONFIG.getDisplayName();
         } else {
@@ -219,8 +217,8 @@ public class MediaTracker {
     private static class MediaSessionHandler implements MediaSessionListener {
         @Override
         public void onSessionAdded(MediaSession session) {
-            busNames.put(session.getSessionId(), session.getApplicationName());
-            if (session.getSessionId().equals(CONFIG.getBusName())
+            sessions.put(session.getSessionId(), session.getApplicationName());
+            if (session.getSessionId().equals(CONFIG.getPreferred())
                     || (currentTrack == null && !CONFIG.getOnlyPreferred())) {
                 setCurrentTrack(new Track(session.getSessionId()));
                 showToast();
@@ -229,11 +227,11 @@ public class MediaTracker {
 
         @Override
         public void onSessionRemoved(String sessionId) {
-            busNames.remove(sessionId);
-            if (currentTrack != null && sessionId.equals(currentTrack.busName())) {
+            sessions.remove(sessionId);
+            if (currentTrack != null && sessionId.equals(currentTrack.sessionId())) {
                 if (!CONFIG.getOnlyPreferred()) {
-                    if (busNames.containsKey(CONFIG.getBusName())) {
-                        setCurrentTrack(new Track(CONFIG.getBusName()));
+                    if (sessions.containsKey(CONFIG.getPreferred())) {
+                        setCurrentTrack(new Track(CONFIG.getPreferred()));
                         showToast();
                     } else {
                         cyclePlayers();

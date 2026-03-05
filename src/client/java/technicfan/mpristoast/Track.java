@@ -6,23 +6,23 @@ import org.endlesssource.mediainterface.api.NowPlaying;
 import org.endlesssource.mediainterface.api.PlaybackState;
 
 public class Track {
-    private final String busName;
+    private final String sessionId;
     private final MediaTransportControls controls;
     private final String name;
     private final long startTime;
     private final boolean active;
     private final boolean changed;
 
-    protected Track(String busName) {
-        this(MediaTracker.getSessionById(busName), busName);
+    protected Track(String sessionId) {
+        this(MediaTracker.getSessionById(sessionId), sessionId);
     }
 
     private Track(MediaSession session, String busName) {
-        this.busName = busName;
+        this.sessionId = busName;
         if (session != null) {
             this.controls = session.getControls();
             this.name = session.getNowPlaying().isPresent() ? getTrackName(session.getNowPlaying().get()) : "";
-            this.active = !controls.getPlaybackState().equals(PlaybackState.STOPPED);
+            this.active = !name.isEmpty() && !controls.getPlaybackState().equals(PlaybackState.STOPPED);
         } else {
             this.controls = null;
             this.name = "";
@@ -33,7 +33,7 @@ public class Track {
     }
 
     private Track(String busName, MediaTransportControls controls, String name, long startTime, boolean active, boolean changed) {
-        this.busName = busName;
+        this.sessionId = busName;
         this.name = name;
         this.controls = controls;
         this.startTime = startTime;
@@ -41,8 +41,8 @@ public class Track {
         this.changed = changed;
     }
 
-    protected String busName() {
-        return busName;
+    protected String sessionId() {
+        return sessionId;
     }
 
     protected String name() {
@@ -85,10 +85,10 @@ public class Track {
     protected Track refresh() {
         String name = "";
         boolean active = false;
-        MediaSession session = MediaTracker.getSessionById(busName);
+        MediaSession session = MediaTracker.getSessionById(sessionId);
         if (session != null) {
             name = session.getNowPlaying().isPresent() ? getTrackName(session.getNowPlaying().get()) : "";
-            active = !controls.getPlaybackState().equals(PlaybackState.STOPPED);
+            active = !name.isEmpty() && !controls.getPlaybackState().equals(PlaybackState.STOPPED);
         } else {
             name = "";
             active = false;
@@ -114,11 +114,11 @@ public class Track {
         if (changed) {
             startTime = System.currentTimeMillis();
         }
-        return new Track(busName, controls, name, startTime, active, !name.equals(this.name));
+        return new Track(sessionId, controls, name, startTime, active, !name.equals(this.name));
     }
 
     protected Track update() {
-        return new Track(busName, controls, name, startTime, active, false);
+        return new Track(sessionId, controls, name, startTime, active, false);
     }
 
     protected float currentScrollOffset(int width) {

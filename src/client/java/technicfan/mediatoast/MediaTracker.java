@@ -1,5 +1,6 @@
-package technicfan.mpristoast;
+package technicfan.mediatoast;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -11,6 +12,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.toasts.ToastManager;
 import net.minecraft.sounds.SoundSource;
 
+import org.endlesssource.mediainterface.PlatformSupport;
 import org.endlesssource.mediainterface.SystemMediaFactory;
 import org.endlesssource.mediainterface.api.MediaSession;
 import org.endlesssource.mediainterface.api.MediaSessionListener;
@@ -35,8 +37,17 @@ public class MediaTracker {
         client = minecraft;
         CONFIG = config;
 
+        PlatformSupport support = SystemMediaFactory.getCurrentPlatformSupport();
+        if (!support.available()) {
+            MediaToastClient.LOGGER.warn("MediaToast is not working on your platform (%s)",
+                    SystemMediaFactory.getPlatformName());
+            MediaToastClient.LOGGER.warn("The reason given by mediainterface is: %s", support.reason());
+            return;
+        }
+
         try {
             media = SystemMediaFactory.createSystemInterface(SystemMediaOptions.defaults()
+                    .withSessionUpdateInterval(Duration.ofMillis(100))
                     .withPositionUpdatesEnabled(false));
             for (MediaSession session : media.getAllSessions()) {
                 sessions.put(session.getSessionId(), session.getApplicationName());
@@ -53,7 +64,7 @@ public class MediaTracker {
 
             media.addSessionListener(listener);
         } catch (Exception e) {
-            MprisToastClient.LOGGER.error("Event-driven example failed", e);
+            MediaToastClient.LOGGER.error(e.toString(), e.fillInStackTrace());
         }
     }
 
@@ -82,7 +93,6 @@ public class MediaTracker {
                 }
             }
         }
-        MprisToastClient.LOGGER.info(":skull:");
         return null;
     }
 
@@ -110,8 +120,9 @@ public class MediaTracker {
 
     public static boolean show() {
         return CONFIG.getEnabled() &&
-                (((currentTrack != null && !currentTrack.name().isEmpty()) || CONFIG.getReplace()) || (!CONFIG.getReplace() &&
-                        client.options.getFinalSoundSourceVolume(SoundSource.MUSIC) <= 0));
+                (((currentTrack != null && !currentTrack.name().isEmpty()) || CONFIG.getReplace())
+                        || (!CONFIG.getReplace() &&
+                                client.options.getFinalSoundSourceVolume(SoundSource.MUSIC) <= 0));
     }
 
     public static boolean playing() {
@@ -150,11 +161,11 @@ public class MediaTracker {
 
     protected static void close() {
         try {
-            MprisToastClient.LOGGER.info("Closing Media connection");
+            MediaToastClient.LOGGER.info("Closing MediaTracker");
             if (media != null)
                 media.close();
         } catch (Exception e) {
-            MprisToastClient.LOGGER.warn(e.toString(), e.fillInStackTrace());
+            MediaToastClient.LOGGER.warn(e.toString(), e.fillInStackTrace());
         }
     }
 

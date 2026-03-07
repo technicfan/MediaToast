@@ -1,10 +1,11 @@
-package technicfan.mpristoast.mixin;
+package technicfan.mediatoast.mixin;
 
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.toasts.NowPlayingToast;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
+import technicfan.mediatoast.MediaTracker;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -12,8 +13,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import technicfan.mpristoast.MediaTracker;
 
 @Mixin(NowPlayingToast.class)
 public class NowPlayingToastMixin {

@@ -21,7 +21,7 @@ loom {
 	splitEnvironmentSourceSets()
 
 	mods {
-		"mpristoast" {
+		"mediatoast" {
 			sourceSet sourceSets.main
 			sourceSet sourceSets.client
 		}

@@ -1,4 +1,4 @@
-package technicfan.mpristoast.mixin.v1_21_10;
+package technicfan.mediatoast.mixin.v1_21_10;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.client.renderer.texture.SpriteContents;
-import technicfan.mpristoast.MediaTracker;
+import technicfan.mediatoast.MediaTracker;
 
 @Mixin(targets = "net.minecraft.client.renderer.texture.SpriteContents$Ticker")
 public class SpriteContentsMixin {

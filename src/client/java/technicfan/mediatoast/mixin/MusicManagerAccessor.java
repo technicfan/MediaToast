@@ -1,4 +1,4 @@
-package technicfan.mpristoast.mixin;
+package technicfan.mediatoast.mixin;
 
 import net.minecraft.client.sounds.MusicManager;
 import org.spongepowered.asm.mixin.Mixin;

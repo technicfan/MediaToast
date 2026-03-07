@@ -1,4 +1,4 @@
-package technicfan.mpristoast;
+package technicfan.mediatoast;
 
 public class Config {
     private final boolean enabled;

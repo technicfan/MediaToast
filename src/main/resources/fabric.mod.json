@@ -1,21 +1,21 @@
 {
     "schemaVersion": 1,
-    "id": "mpristoast",
+    "id": "mediatoast",
     "version": "${version}",
-    "name": "MprisToast",
-    "description": "(Linux only) Mpris song info via the vanilla music toast",
+    "name": "MediaToast",
+    "description": "Current playing media info via the vanilla music toast (previously MprisToast)",
     "authors": ["technicfan"],
     "contact": {
-        "sources": "https://github.com/technicfan/MprisToast"
+        "sources": "https://github.com/technicfan/MediaToast"
     },
     "license": "MIT",
-    "icon": "assets/mpristoast/icon.png",
+    "icon": "assets/mediatoast/icon.png",
     "environment": "client",
     "entrypoints": {
-        "preLaunch": ["technicfan.mpristoast.DynamicMixins"],
-        "client": ["technicfan.mpristoast.MprisToastClient"]
+        "preLaunch": ["technicfan.mediatoast.DynamicMixins"],
+        "client": ["technicfan.mediatoast.MediaToastClient"]
     },
-    "mixins": ["mpristoast.mixins.json"],
+    "mixins": ["mediatoast.mixins.json"],
     "depends": {
         "fabricloader": ">=0.17.3",
         "minecraft": ["1.21.10", "1.21.11"],

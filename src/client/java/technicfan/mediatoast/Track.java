@@ -1,4 +1,4 @@
-package technicfan.mpristoast;
+package technicfan.mediatoast;
 
 import org.endlesssource.mediainterface.api.MediaSession;
 import org.endlesssource.mediainterface.api.MediaTransportControls;

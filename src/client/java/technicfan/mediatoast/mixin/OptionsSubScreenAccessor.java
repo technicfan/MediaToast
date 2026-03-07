@@ -1,4 +1,4 @@
-package technicfan.mpristoast.mixin;
+package technicfan.mediatoast.mixin;
 
 import net.minecraft.client.gui.components.OptionsList;
 import net.minecraft.client.gui.screens.options.OptionsSubScreen;

@@ -1,4 +1,4 @@
-package technicfan.mpristoast.mixin.v1_21_11;
+package technicfan.mediatoast.mixin.v1_21_11;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -11,7 +11,7 @@ import com.mojang.blaze3d.textures.GpuTextureView;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.minecraft.client.renderer.texture.SpriteContents;
-import technicfan.mpristoast.MediaTracker;
+import technicfan.mediatoast.MediaTracker;
 
 // targets = "net.minecraft.client.renderer.texture.SpriteContents$AnimationState"
 @Mixin(targets = "net.minecraft.class_7764$class_12298")

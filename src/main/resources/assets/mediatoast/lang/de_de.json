@@ -1,0 +1,18 @@
+{
+    "key.category.mediatoast.mediatoast": "MediaToast",
+    "mediatoast.key.playpause": "Start/Pause",
+    "mediatoast.key.play": "Start",
+    "mediatoast.key.pause": "Pause",
+    "mediatoast.key.next": "Nächstes Lied",
+    "mediatoast.key.prev": "Vorheriges Lied",
+    "mediatoast.key.refresh": "Liedinfo neuladen",
+    "mediatoast.key.cycle": "Player durchschalten",
+    "mediatoast.option.enable": "MediaToast aktivieren",
+    "mediatoast.option.replace": "Vanilla Toast ersetzen",
+    "mediatoast.option.replace.tooltip": "Wenn aktiviert wird nie ein Toast mit Vanilla Musik angezeigt, selbst wenn keine sonstige Musik läuft",
+    "mediatoast.option.preferred": "Bevorzugte Quelle",
+    "mediatoast.option.preferred.none": "Keine",
+    "mediatoast.option.preferred.tooltip": "Eine Musikquelle wählen, die genutzt wird wenn sie aktiv ist. `Keine` verwendet immer die erste erkannte Musikquelle",
+    "mediatoast.option.only_preferred": "Nur bevorzugte Quelle",
+    "mediatoast.option.only_preferred.tooltip": "Wenn aktiviert wird keine andere Quelle verwendet wenn die bevorzugte nicht aktiv ist. `Bevorzugte Quelle` sollte auf etwas anderes als `Keine` gesetzt werden, da sonst nie Musik angezeigt wird"
+}

@@ -1,12 +1,13 @@
-package technicfan.mpristoast.mixin;
+package technicfan.mediatoast.mixin;
 
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.sounds.SoundSource;
+import technicfan.mediatoast.MediaTracker;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import technicfan.mpristoast.MediaTracker;
 
 @Mixin(PauseScreen.class)
 public class PauseScreenMixin {

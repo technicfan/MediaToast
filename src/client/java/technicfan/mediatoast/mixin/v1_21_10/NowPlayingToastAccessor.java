@@ -1,4 +1,4 @@
-package technicfan.mpristoast.mixin.v1_21_10;
+package technicfan.mediatoast.mixin.v1_21_10;
 
 import net.minecraft.client.gui.components.toasts.NowPlayingToast;
 

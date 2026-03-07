@@ -1,12 +1,13 @@
-package technicfan.mpristoast.mixin;
+package technicfan.mediatoast.mixin;
 
 import net.minecraft.client.gui.components.toasts.ToastManager;
 import net.minecraft.client.sounds.MusicManager;
+import technicfan.mediatoast.MediaTracker;
+
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import technicfan.mpristoast.MediaTracker;
 
 @Mixin(MusicManager.class)
 public class MusicManagerMixin {

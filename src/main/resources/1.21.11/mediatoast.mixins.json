@@ -1,6 +1,6 @@
 {
     "required": true,
-    "package": "technicfan.mpristoast.mixin.v1_21_11",
+    "package": "technicfan.mediatoast.mixin.v1_21_11",
     "compatibilityLevel": "JAVA_21",
     "mixins": ["MusicManagerMixin", "AnimationStateMixin"],
     "injectors": {

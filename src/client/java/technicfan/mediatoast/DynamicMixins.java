@@ -1,4 +1,4 @@
-package technicfan.mpristoast;
+package technicfan.mediatoast;
 
 import org.spongepowered.asm.mixin.Mixins;
 
@@ -9,9 +9,9 @@ public class DynamicMixins implements PreLaunchEntrypoint {
     @Override
     public void onPreLaunch() {
         if (FabricLoader.getInstance().getRawGameVersion().equals("1.21.10")) {
-            Mixins.addConfiguration("1.21.10/mpristoast.mixins.json");
+            Mixins.addConfiguration("1.21.10/mediatoast.mixins.json");
         } else {
-            Mixins.addConfiguration("1.21.11/mpristoast.mixins.json");
+            Mixins.addConfiguration("1.21.11/mediatoast.mixins.json");
         }
     }
 }

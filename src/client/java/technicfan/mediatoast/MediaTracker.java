@@ -39,9 +39,9 @@ public class MediaTracker {
 
         PlatformSupport support = SystemMediaFactory.getCurrentPlatformSupport();
         if (!support.available()) {
-            MediaToastClient.LOGGER.warn("MediaToast is not working on your platform (%s)",
+            MediaToastClient.LOGGER.warn("MediaToast is not working on your platform ({})",
                     SystemMediaFactory.getPlatformName());
-            MediaToastClient.LOGGER.warn("The reason given by mediainterface is: %s", support.reason());
+            MediaToastClient.LOGGER.warn("The reason given by mediainterface is: {}", support.reason());
             return;
         }
 

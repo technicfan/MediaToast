@@ -6,7 +6,7 @@
     "mediatoast.key.next": "Nächstes Lied",
     "mediatoast.key.prev": "Vorheriges Lied",
     "mediatoast.key.refresh": "Liedinfo neuladen",
-    "mediatoast.key.cycle": "Player durchschalten",
+    "mediatoast.key.cycle": "Quellen durchschalten",
     "mediatoast.option.enable": "MediaToast aktivieren",
     "mediatoast.option.replace": "Vanilla Toast ersetzen",
     "mediatoast.option.replace.tooltip": "Wenn aktiviert wird nie ein Toast mit Vanilla Musik angezeigt, selbst wenn keine sonstige Musik läuft",

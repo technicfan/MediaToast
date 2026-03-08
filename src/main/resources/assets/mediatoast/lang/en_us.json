@@ -6,7 +6,7 @@
     "mediatoast.key.next": "Next Song",
     "mediatoast.key.prev": "Previous Song",
     "mediatoast.key.refresh": "Refresh Playback Info",
-    "mediatoast.key.cycle": "Cycle through Player",
+    "mediatoast.key.cycle": "Cycle through sources",
     "mediatoast.option.enable": "Enable MediaToast",
     "mediatoast.option.replace": "Replace vanilla toast",
     "mediatoast.option.replace.tooltip": "If turned on, there will be no music toasts with vanilla music even if no other music is playing on your system",

@@ -120,7 +120,7 @@ public class MediaToastClient implements ClientModInitializer {
                         return Component.translatable("mediatoast.option.preferred.none");
                     } else {
                         String displayName = MediaTracker.getDisplayName(value);
-                        value = value.replaceFirst("org.media.MediaPlayer2.", "").replaceFirst("\\.exe$", "");
+                        value = value.replaceFirst("org.mpris.MediaPlayer2.", "").replaceFirst("\\.exe$", "");
                         return Component.literal(
                                 displayName.isEmpty() ? value.substring(0, 1).toUpperCase() + value.substring(1)
                                         : displayName);

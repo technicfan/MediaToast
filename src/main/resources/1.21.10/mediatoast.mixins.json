@@ -2,11 +2,7 @@
     "required": true,
     "package": "technicfan.mediatoast.mixin.v1_21_10",
     "compatibilityLevel": "JAVA_21",
-    "mixins": [
-        "NowPlayingToastAccessor",
-        "NowPlayingToastMixin",
-        "SpriteContentsMixin"
-    ],
+    "mixins": ["NowPlayingToastMixin", "SpriteContentsMixin"],
     "injectors": {
         "defaultRequire": 1
     }

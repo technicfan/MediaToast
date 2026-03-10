@@ -24,7 +24,7 @@ All options are located in the vanilla sound settings under the option to enable
 
 - when you're running Minecraft in a Flatpak sandbox, you have to add `org.mpris.MediaPlayer2.*` to the list of well known session bus names your launcher can talk to e.g. with [Flatseal](https://github.com/tchx84/flatseal)
 
-### Note
+### Notes
 
 - there will be no older versions, as the music toast didn't exist pre 1.21.10
 - macOS is probably not supported (I also have no way to test it)

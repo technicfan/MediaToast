@@ -26,7 +26,8 @@ All options are located in the vanilla sound settings under the option to enable
 
 ### Notes
 
-- there will be no older versions, as the music toast didn't exist pre 1.21.10
+- ~there will be no older versions, as the music toast didn't exist pre 1.21.10~
+    - stupid me; it was added in 1.21.6 - i will try to support those versions too
 - macOS is probably not supported (I also have no way to test it)
 
 ### Libraries used

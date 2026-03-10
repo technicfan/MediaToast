@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -19,9 +21,10 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.VersionParsingException;
+import net.fabricmc.loader.api.Version;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.KeyMapping.Category;
 import net.minecraft.client.OptionInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -29,8 +32,7 @@ import net.minecraft.resources.ResourceLocation;
 public class MediaToastClient implements ClientModInitializer {
     public static final String MOD_ID = "mediatoast";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-    private final static Category MOD_CATEGORY = KeyMapping.Category
-            .register(ResourceLocation.fromNamespaceAndPath(MOD_ID, MOD_ID));
+
     private static final File CONFIG_FILE = FabricLoader.getInstance()
             .getConfigDir().resolve(MOD_ID + ".json").toFile();
 
@@ -41,40 +43,79 @@ public class MediaToastClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        registerKeybindings();
-        MediaTracker.init(Minecraft.getInstance(), loadConfig());
+        Minecraft minecraft = Minecraft.getInstance();
+        boolean newWay = false;
+        try {
+            newWay = 0 < Version.parse(minecraft.getLaunchedVersion()).compareTo(Version.parse("1.21.8"));
+        } catch (VersionParsingException e) {
+        }
+        registerKeybindings(newWay);
+        MediaTracker.init(minecraft, loadConfig());
         createToggles();
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
             MediaTracker.close();
         });
     }
 
-    private static void registerKeybindings() {
-        KeyMapping playPauseBinding = KeyBindingHelper.registerKeyBinding(new KeyMapping(
-                "mediatoast.key.playpause",
-                InputConstants.Type.KEYSYM,
-                InputConstants.UNKNOWN.getValue(),
-                MOD_CATEGORY));
-        KeyMapping nextBinding = KeyBindingHelper.registerKeyBinding(new KeyMapping(
-                "mediatoast.key.next",
-                InputConstants.Type.KEYSYM,
-                InputConstants.UNKNOWN.getValue(),
-                MOD_CATEGORY));
-        KeyMapping prevBinding = KeyBindingHelper.registerKeyBinding(new KeyMapping(
-                "mediatoast.key.prev",
-                InputConstants.Type.KEYSYM,
-                InputConstants.UNKNOWN.getValue(),
-                MOD_CATEGORY));
-        KeyMapping refreshBinding = KeyBindingHelper.registerKeyBinding(new KeyMapping(
-                "mediatoast.key.refresh",
-                InputConstants.Type.KEYSYM,
-                InputConstants.UNKNOWN.getValue(),
-                MOD_CATEGORY));
-        KeyMapping cycleBinding = KeyBindingHelper.registerKeyBinding(new KeyMapping(
-                "mediatoast.key.cycle",
-                InputConstants.Type.KEYSYM,
-                InputConstants.UNKNOWN.getValue(),
-                MOD_CATEGORY));
+    private static void registerKeybindings(Boolean newWay) {
+        Object MOD_CATEGORY;
+        Class<?> categoryClass;
+        Constructor<KeyMapping> keybindingCtor;
+        KeyMapping playPauseBinding, nextBinding, prevBinding, refreshBinding, cycleBinding;
+        // Keybinding category with Keybinding.Category for Minecraft >= 1.21.9
+        if (newWay) {
+            try {
+                MOD_CATEGORY = KeyMapping.Category.register(ResourceLocation.fromNamespaceAndPath(MOD_ID, MOD_ID));
+                keybindingCtor = KeyMapping.class.getConstructor(String.class, InputConstants.Type.class, int.class,
+                        KeyMapping.Category.class);
+                categoryClass = KeyMapping.Category.class;
+            } catch (NoClassDefFoundError | NoSuchMethodException | NoSuchMethodError e) {
+                LOGGER.error(e.toString(), e.fillInStackTrace());
+                return;
+            }
+            // Keybinding category with String for Minecraft < 1.21.9
+        } else {
+            try {
+                MOD_CATEGORY = "key.category.mediatoast.mediatoast";
+                keybindingCtor = KeyMapping.class.getConstructor(String.class, InputConstants.Type.class, int.class,
+                        String.class);
+                categoryClass = String.class;
+            } catch (NoSuchMethodException | NoSuchMethodError e) {
+                LOGGER.error(e.toString(), e.fillInStackTrace());
+                return;
+            }
+        }
+
+        try {
+            playPauseBinding = KeyBindingHelper.registerKeyBinding(keybindingCtor.newInstance(
+                    "mediatoast.key.playpause",
+                    InputConstants.Type.KEYSYM,
+                    InputConstants.UNKNOWN.getValue(),
+                    categoryClass.cast(MOD_CATEGORY)));
+            nextBinding = KeyBindingHelper.registerKeyBinding(keybindingCtor.newInstance(
+                    "mediatoast.key.next",
+                    InputConstants.Type.KEYSYM,
+                    InputConstants.UNKNOWN.getValue(),
+                    categoryClass.cast(MOD_CATEGORY)));
+            prevBinding = KeyBindingHelper.registerKeyBinding(keybindingCtor.newInstance(
+                    "mediatoast.key.prev",
+                    InputConstants.Type.KEYSYM,
+                    InputConstants.UNKNOWN.getValue(),
+                    categoryClass.cast(MOD_CATEGORY)));
+            refreshBinding = KeyBindingHelper.registerKeyBinding(keybindingCtor.newInstance(
+                    "mediatoast.key.refresh",
+                    InputConstants.Type.KEYSYM,
+                    InputConstants.UNKNOWN.getValue(),
+                    categoryClass.cast(MOD_CATEGORY)));
+            cycleBinding = KeyBindingHelper.registerKeyBinding(keybindingCtor.newInstance(
+                    "mediatoast.key.cycle",
+                    InputConstants.Type.KEYSYM,
+                    InputConstants.UNKNOWN.getValue(),
+                    categoryClass.cast(MOD_CATEGORY)));
+        } catch (InvocationTargetException | IllegalAccessException | InstantiationException e) {
+            LOGGER.error(e.toString(), e.fillInStackTrace());
+            return;
+        }
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (playPauseBinding.consumeClick()) {

@@ -8,10 +8,10 @@ import net.fabricmc.loader.api.entrypoint.PreLaunchEntrypoint;
 public class DynamicMixins implements PreLaunchEntrypoint {
     @Override
     public void onPreLaunch() {
-        if (FabricLoader.getInstance().getRawGameVersion().equals("1.21.10")) {
-            Mixins.addConfiguration("1.21.10/mediatoast.mixins.json");
-        } else {
+        if (FabricLoader.getInstance().getRawGameVersion().equals("1.21.11")) {
             Mixins.addConfiguration("1.21.11/mediatoast.mixins.json");
+        } else {
+            Mixins.addConfiguration("1.21.10/mediatoast.mixins.json");
         }
     }
 }

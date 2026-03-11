@@ -74,7 +74,7 @@ public class NowPlayingToastMixin {
             target = "Lnet/minecraft/client/gui/Font;width(Lnet/minecraft/network/chat/FormattedText;)I"
         )
     )
-    private static int width(Font font, FormattedText text) {
+    private static int getWidth(Font font, FormattedText text) {
         if (MediaTracker.show()) {
             width = font.width(MediaTracker.track());
             return width <= MediaTracker.maxWidth ? width : MediaTracker.maxWidth;
@@ -84,7 +84,10 @@ public class NowPlayingToastMixin {
     }
 
     @Redirect(
+        //? if <=1.21.11 {
         method = "renderToast",
+        //?} else
+        /*method = "extractToast",*/
         at = @At(
             value = "INVOKE",
             target = "Lnet/minecraft/client/gui/GuiGraphics;drawString(Lnet/minecraft/client/gui/Font;Lnet/minecraft/network/chat/Component;III)V"

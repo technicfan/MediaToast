@@ -1,0 +1,97 @@
+plugins {
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+	id 'maven-publish'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
+
+loom {
+	splitEnvironmentSourceSets()
+
+	mods {
+		"mediatoast" {
+			sourceSet sourceSets.main
+			sourceSet sourceSets.client
+		}
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${sc.current.version}"
+
+    include "com.github.hypfvieh:dbus-java-core:${project.dbus_version}"
+    include "com.github.hypfvieh:dbus-java-transport-native-unixsocket:${project.dbus_version}"
+
+    implementation "org.endlesssource.mediainterface:all:${project.mediainterface_version}"
+    include "org.endlesssource.mediainterface:core:${project.mediainterface_version}"
+    include "org.endlesssource.mediainterface:linux:${project.mediainterface_version}"
+    include "org.endlesssource.mediainterface:macos:${project.mediainterface_version}"
+    include "org.endlesssource.mediainterface:windows:${project.mediainterface_version}"
+
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+}
+
+stonecutter {
+    replacements.string(true) {
+       replace "ResourceLocation", "Identifier"
+       replace "KeyBinding", "KeyMapping"
+       replace "keybinding.v1", "keymapping.v1"
+       replace "GuiGraphics", "GuiGraphicsExtractor"
+       replace "gui.drawString(", "gui.text("
+    }
+}
+
+processResources {
+	inputs.property "version", project.version
+    inputs.property "minecraft", project.supported_versions
+
+	filesMatching("fabric.mod.json") {
+		expand inputs.properties
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 25
+}
+
+java {
+	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
+	// if it is present.
+	// If you remove this line, sources will not be generated.
+	withSourcesJar()
+
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
+}
+
+jar {
+	inputs.property "archivesName", project.base.archivesName
+
+	from("LICENSE") {
+		rename { "${it}_${inputs.properties.archivesName}"}
+	}
+}
+
+// configure the maven publication
+publishing {
+	publications {
+		create("mavenJava", MavenPublication) {
+			artifactId = project.archives_base_name
+			from components.java
+		}
+	}
+
+	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
+	repositories {
+		// Add repositories to publish to here.
+		// Notice: This block does NOT have the same function as the block in the top level.
+		// The repositories here will be used for publishing your artifact, not for
+		// retrieving dependencies.
+	}
+}

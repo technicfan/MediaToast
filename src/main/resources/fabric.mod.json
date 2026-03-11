@@ -12,13 +12,12 @@
     "icon": "assets/mediatoast/icon.png",
     "environment": "client",
     "entrypoints": {
-        "preLaunch": ["technicfan.mediatoast.DynamicMixins"],
         "client": ["technicfan.mediatoast.MediaToastClient"]
     },
     "mixins": ["mediatoast.mixins.json"],
     "depends": {
         "fabricloader": ">=0.17.3",
-        "minecraft": ">=1.21.6 <=1.21.11",
+        "minecraft": "${minecraft}",
         "java": ">=21",
         "fabric-api": "*"
     }

@@ -10,13 +10,6 @@ base {
 	archivesName = project.archives_base_name
 }
 
-repositories {
-	maven {
-		url = "https://api.modrinth.com/maven"
-		content { includeGroup "maven.modrinth" }
-	}
-}
-
 loom {
 	splitEnvironmentSourceSets()
 
@@ -29,8 +22,8 @@ loom {
 }
 
 dependencies {
-	// To change the versions see the gradle.properties file
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	minecraft "com.mojang:minecraft:${sc.current.version}"
+    mappings loom.officialMojangMappings()
 
     include "com.github.hypfvieh:dbus-java-core:${project.dbus_version}"
     include "com.github.hypfvieh:dbus-java-transport-native-unixsocket:${project.dbus_version}"
@@ -41,17 +34,22 @@ dependencies {
     include "org.endlesssource.mediainterface:macos:${project.mediainterface_version}"
     include "org.endlesssource.mediainterface:windows:${project.mediainterface_version}"
 
-    mappings loom.officialMojangMappings()
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+}
 
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+stonecutter {
+    replacements.string(sc.current.parsed.matches('1.21.11')) {
+       replace "ResourceLocation", "Identifier"
+    }
 }
 
 processResources {
 	inputs.property "version", project.version
+    inputs.property "minecraft", project.supported_versions
 
 	filesMatching("fabric.mod.json") {
-		expand "version": inputs.properties.version
+		expand inputs.properties
 	}
 }
 

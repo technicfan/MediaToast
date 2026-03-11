@@ -1,9 +1,0 @@
-{
-    "required": true,
-    "package": "technicfan.mediatoast.mixin.v1_21_11",
-    "compatibilityLevel": "JAVA_21",
-    "mixins": ["NowPlayingToastMixin", "AnimationStateMixin"],
-    "injectors": {
-        "defaultRequire": 1
-    }
-}

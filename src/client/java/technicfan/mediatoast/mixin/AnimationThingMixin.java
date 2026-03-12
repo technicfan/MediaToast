@@ -25,9 +25,9 @@ public class AnimationThingMixin {
 
     @Inject(method = "<init>", at = @At("TAIL"))
     //? if <=1.21.10 {
-    private void checkId(SpriteContents contents, @Coerce Object x, @Coerce Object y, CallbackInfo ci) {
+    private void Ticker(SpriteContents contents, @Coerce Object x, @Coerce Object y, CallbackInfo ci) {
     //?} else
-    /*private void checkId(SpriteContents contents, @Coerce Object x, Int2ObjectMap<GpuTextureView> y, GpuBufferSlice[] z, CallbackInfo ci) {*/
+    /*private void AnimationState(SpriteContents contents, @Coerce Object x, Int2ObjectMap<GpuTextureView> y, GpuBufferSlice[] z, CallbackInfo ci) {*/
         musicNotes = contents.name().getPath().equals("icon/music_notes");
     }
 
@@ -38,7 +38,7 @@ public class AnimationThingMixin {
         /*method = "tick",*/
         at = @At("HEAD"), cancellable = true
     )
-    private void pauseNotes(CallbackInfo ci) {
+    private void tick(CallbackInfo ci) {
         if (musicNotes && MediaTracker.show() && !MediaTracker.playing()) {
             ci.cancel();
         }

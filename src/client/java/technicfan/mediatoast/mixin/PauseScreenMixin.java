@@ -20,7 +20,7 @@ public class PauseScreenMixin {
             target = "Lnet/minecraft/client/Options;getFinalSoundSourceVolume(Lnet/minecraft/sounds/SoundSource;)F"
         )
     )
-    private float bypassMusicVolume(Options options, SoundSource c) {
+    private float getFinalSoundSourceVolume(Options options, SoundSource c) {
         if (MediaTracker.show()) {
             return 1;
         } else {

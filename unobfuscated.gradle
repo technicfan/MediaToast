@@ -43,7 +43,7 @@ stonecutter {
        replace "KeyBinding", "KeyMapping"
        replace "keybinding.v1", "keymapping.v1"
        replace "GuiGraphics", "GuiGraphicsExtractor"
-       replace "gui.drawString(", "gui.text("
+       replace "drawString", "text"
     }
 }
 

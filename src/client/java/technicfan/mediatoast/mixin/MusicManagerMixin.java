@@ -21,7 +21,7 @@ public class MusicManagerMixin {
             target = "Lnet/minecraft/client/gui/components/toasts/ToastManager;showNowPlayingToast()V"
         )
     )
-    private void preventShowToast(ToastManager manager) {
+    private void showNowPlayingToast(ToastManager manager) {
         if (!MediaTracker.show()) {
             manager.showNowPlayingToast();
         }
@@ -38,7 +38,7 @@ public class MusicManagerMixin {
             opcode = Opcodes.PUTFIELD
         )
     )
-    private void showToastOverride(MusicManager tracker, boolean shown) {
+    private void toastShown(MusicManager tracker, boolean shown) {
         if (!MediaTracker.show()) {
             ((MusicManagerAccessor) tracker).toastShown(shown);
         }

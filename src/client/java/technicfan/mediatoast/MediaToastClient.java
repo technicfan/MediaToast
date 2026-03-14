@@ -28,6 +28,7 @@ import net.minecraft.resources.ResourceLocation;
 public class MediaToastClient implements ClientModInitializer {
     public static final String MOD_ID = "mediatoast";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+    public static final boolean hasVulkanMod = FabricLoader.getInstance().getModContainer("vulkanmod").isPresent();
 
     private static final File CONFIG_FILE = FabricLoader.getInstance()
             .getConfigDir().resolve(MOD_ID + ".json").toFile();

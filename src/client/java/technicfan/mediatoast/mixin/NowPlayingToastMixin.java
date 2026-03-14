@@ -5,6 +5,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.toasts.NowPlayingToast;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
+import technicfan.mediatoast.MediaToastClient;
 import technicfan.mediatoast.MediaTracker;
 
 import org.objectweb.asm.Opcodes;
@@ -18,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(NowPlayingToast.class)
 public class NowPlayingToastMixin {
-    private static int width = 0;
+    private static int width;
     //? if <=1.21.10 {
     @Shadow
     private static String currentSong;
@@ -95,7 +96,7 @@ public class NowPlayingToastMixin {
     )
     private static void drawString(GuiGraphics gui, Font font, Component text, int x, int y, int color) {
         if (MediaTracker.show() && width > MediaTracker.maxWidth) {
-            gui.enableScissor(x, 0, x + MediaTracker.maxWidth, y + font.lineHeight);
+            gui.enableScissor(x, 0, x + MediaTracker.maxWidth + translationOffset(x, gui.pose().m20), y + font.lineHeight);
             gui.pose().pushMatrix();
             gui.pose().translate(x - MediaTracker.currentScrollOffset(width), 0);
             gui.drawString(font, MediaTracker.track(), 0, y, color);
@@ -103,6 +104,20 @@ public class NowPlayingToastMixin {
             gui.disableScissor();
         } else {
             gui.drawString(font, text, x, y, color);
+        }
+    }
+
+    // In VulkanMod a matrix translation seems to not be applied to `enableScissor()`
+    // while in Vanilla it does, so I kinda apply it manually (float -> int, but it's enough ig)
+    private static int translationOffset(int start, float offset) {
+        if (MediaToastClient.hasVulkanMod) {
+            if (-offset >= start) {
+                return (int) offset + start;
+            } else {
+                return offset > 0 ? start + (int) offset : 0;
+            }
+        } else {
+            return 0;
         }
     }
 }

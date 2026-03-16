@@ -39,14 +39,12 @@ public class MediaToastClient implements ClientModInitializer {
 
     private static OptionInstance<Boolean> enabledToggle;
     private static OptionInstance<Boolean> replaceToggle;
-    private static OptionInstance<String> preferredToggle;
     private static OptionInstance<Boolean> onlyPreferredToggle;
 
     @Override
     public void onInitializeClient() {
-        Minecraft minecraft = Minecraft.getInstance();
         registerKeybindings();
-        MediaTracker.init(minecraft, loadConfig());
+        MediaTracker.init(Minecraft.getInstance(), loadConfig());
         createToggles();
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
             MediaTracker.close();
@@ -117,26 +115,8 @@ public class MediaToastClient implements ClientModInitializer {
                 MediaTracker.getConfig().getReplace(), (value) -> {
                     setReplace(value);
                 });
-        preferredToggle = new OptionInstance<String>("mediatoast.option.preferred",
-                OptionInstance.cachedConstantTooltip(Component.translatable("mediatoast.option.preferred.tooltip")),
-                (optionText, value) -> {
-                    if (value.isEmpty()) {
-                        return Component.translatable("mediatoast.option.preferred.none");
-                    } else {
-                        String displayName = MediaTracker.getDisplayName(value);
-                        value = value.replaceFirst("org.mpris.MediaPlayer2.", "").replaceFirst("\\.exe$", "");
-                        return Component.literal(
-                                displayName.isEmpty() ? value.substring(0, 1).toUpperCase() + value.substring(1)
-                                        : displayName);
-                    }
-                }, new OptionInstance.LazyEnum<String>(() -> MediaTracker.getPlayerStream().toList(),
-                        (value) -> Optional.of(value), Codec.STRING),
-                MediaTracker.getConfig().getPreferred(), (value) -> {
-                    setPreferred(value);
-                });
         onlyPreferredToggle = OptionInstance.createBoolean("mediatoast.option.only_preferred",
-                OptionInstance
-                        .cachedConstantTooltip(Component.translatable("mediatoast.option.only_preferred.tooltip")),
+                OptionInstance.cachedConstantTooltip(Component.translatable("mediatoast.option.only_preferred.tooltip")),
                 MediaTracker.getConfig().getOnlyPreferred(), (value) -> {
                     setOnlyPreferred(value);
                 });
@@ -151,7 +131,28 @@ public class MediaToastClient implements ClientModInitializer {
     }
 
     public static OptionInstance<String> getPreferredToggle() {
-        return preferredToggle;
+        String initial = MediaTracker.getConfig().getPreferred();
+        String initialDisplay = MediaTracker.getConfig().getDisplayName();
+        return new OptionInstance<String>("mediatoast.option.preferred",
+            OptionInstance.cachedConstantTooltip(Component.translatable("mediatoast.option.preferred.tooltip")),
+            (optionText, value) -> {
+                if (value.isEmpty()) {
+                    return Component.translatable("mediatoast.option.preferred.none");
+                } else {
+                    String displayName = MediaTracker.getDisplayName(value, initial, initialDisplay);
+                    value = value.replaceFirst("org.mpris.MediaPlayer2.", "").replaceFirst("\\.exe$", "");
+                    if (displayName.isEmpty() && value.isEmpty()) {
+                        return Component.translatable("mediatoast.option.preferred.unknown");
+                    }
+                    return Component.literal(
+                            displayName.isEmpty() ? value.substring(0, 1).toUpperCase() + value.substring(1)
+                                    : displayName);
+                }
+            }, new OptionInstance.LazyEnum<String>(() -> MediaTracker.getPlayerStream().toList(),
+                    (value) -> Optional.of(value), Codec.STRING),
+            initial, (value) -> {
+                setPreferred(value, MediaTracker.getDisplayName(value, initial, initialDisplay));
+            });
     }
 
     public static OptionInstance<Boolean> getOnlyPreferredToggle() {
@@ -174,12 +175,8 @@ public class MediaToastClient implements ClientModInitializer {
         saveConfig();
     }
 
-    private static void setPreferred(String preferred) {
-        if (preferred.equals("None")) {
-            preferred = "";
-        }
+    private static void setPreferred(String preferred, String displayName) {
         if (!MediaTracker.getConfig().getPreferred().equals(preferred)) {
-            String displayName = MediaTracker.getDisplayName(preferred);
             MediaTracker.setConfig(MediaTracker.getConfig().setPreferred(preferred, displayName));
             MediaTracker.updatePreferred();
             saveConfig();

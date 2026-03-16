@@ -220,11 +220,11 @@ public class MediaTracker {
         }
     }
 
-    protected static String getDisplayName(String name) {
+    protected static String getDisplayName(String name, String initial, String initialDisplay) {
         if (sessions.containsKey(name)) {
             return sessions.get(name).replaceFirst("\\.exe$", "");
-        } else if (name.equals(CONFIG.getPreferred()) && !CONFIG.getDisplayName().isEmpty()) {
-            return CONFIG.getDisplayName();
+        } else if (name.equals(initial)) {
+            return initialDisplay;
         } else {
             return "";
         }

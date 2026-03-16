@@ -12,6 +12,7 @@
     "mediatoast.option.replace.tooltip": "Wenn aktiviert wird nie ein Toast mit Vanilla Musik angezeigt, selbst wenn keine sonstige Musik läuft",
     "mediatoast.option.preferred": "Bevorzugte Quelle",
     "mediatoast.option.preferred.none": "Keine",
+    "mediatoast.option.preferred.unknown": "Unbekannt",
     "mediatoast.option.preferred.tooltip": "Eine Musikquelle wählen, die genutzt wird wenn sie aktiv ist. `Keine` verwendet immer die erste erkannte Musikquelle",
     "mediatoast.option.only_preferred": "Nur bevorzugte Quelle",
     "mediatoast.option.only_preferred.tooltip": "Wenn aktiviert wird keine andere Quelle verwendet wenn die bevorzugte nicht aktiv ist. `Bevorzugte Quelle` sollte auf etwas anderes als `Keine` gesetzt werden, da sonst nie Musik angezeigt wird"

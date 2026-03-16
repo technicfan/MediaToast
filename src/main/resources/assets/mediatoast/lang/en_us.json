@@ -12,6 +12,7 @@
     "mediatoast.option.replace.tooltip": "If turned on, there will be no music toasts with vanilla music even if no other music is playing on your system",
     "mediatoast.option.preferred": "Preferred source",
     "mediatoast.option.preferred.none": "None",
+    "mediatoast.option.preferred.unknown": "Unknown",
     "mediatoast.option.preferred.tooltip": "Set a music source that will be used when it's active. `None` will always use the one that is discovered first",
     "mediatoast.option.only_preferred": "Only preferred source",
     "mediatoast.option.only_preferred.tooltip": "If turned on, nothing will be used if the preferred source is not active. Set `Preferred source` to anything but `None`, otherwise there will never be music shown"

@@ -21,7 +21,7 @@ public class PauseScreenMixin {
         )
     )
     private float getFinalSoundSourceVolume(Options options, SoundSource c) {
-        if (MediaTracker.show()) {
+        if (MediaTracker.shouldShow()) {
             return 1;
         } else {
             return options.getFinalSoundSourceVolume(c);

@@ -33,12 +33,12 @@ public class NowPlayingToastMixin {
         )
     )
     private static void currentSong(String key) {
-        currentSong = MediaTracker.show() ? MediaTracker.track() : key;
+        currentSong = MediaTracker.shouldShowLonger() ? MediaTracker.track() : key;
     }
     //?} else {
     /*@Inject(method = "getCurrentSongName", at = @At("HEAD"), cancellable = true)
     private static void getCurrentSongName(CallbackInfoReturnable<String> cir) {
-        if (MediaTracker.show()) {
+        if (MediaTracker.shouldShowLonger()) {
             cir.setReturnValue(MediaTracker.track());
         }
     }*/
@@ -46,7 +46,18 @@ public class NowPlayingToastMixin {
 
     @Inject(method = "getNowPlayingString", at = @At("HEAD"), cancellable = true)
     private static void getNowPlayingString(CallbackInfoReturnable<Component> cir) {
-        if (MediaTracker.show()) cir.setReturnValue(Component.nullToEmpty(MediaTracker.track()));
+        if (MediaTracker.shouldShowLonger())
+                cir.setReturnValue(Component.nullToEmpty(MediaTracker.track()));
+    }
+
+    @Inject(method = "showToast", at = @At("TAIL"))
+    private void showToast(CallbackInfo ci) {
+        MediaTracker.setToastShown(true);
+    }
+
+    @Inject(method = "onFinishedRendering", at = @At("TAIL"))
+    private void onFinishedRendering(CallbackInfo ci) {
+        MediaTracker.setToastShown(false);
     }
 
     //? if <=1.21.10 {
@@ -63,7 +74,7 @@ public class NowPlayingToastMixin {
     //?} else
     /*@Inject(method = "tickMusicNotes", at = @At("HEAD"), cancellable = true)*/
     private static void tickMusicNotes(CallbackInfo ci) {
-        if (MediaTracker.show() && !MediaTracker.playing()) {
+        if (MediaTracker.shouldShowLonger() && !MediaTracker.isPlaying()) {
             ci.cancel();
         }
     }
@@ -76,8 +87,8 @@ public class NowPlayingToastMixin {
         )
     )
     private static int width(Font font, FormattedText text) {
-        if (MediaTracker.show()) {
-            width = font.width(MediaTracker.track());
+        if (MediaTracker.shouldShowLonger()) {
+            width = font.width(text);
             return width <= MediaTracker.maxWidth ? width : MediaTracker.maxWidth;
         } else {
             return font.width(text);
@@ -95,11 +106,11 @@ public class NowPlayingToastMixin {
         )
     )
     private static void drawString(GuiGraphics gui, Font font, Component text, int x, int y, int color) {
-        if (MediaTracker.show() && width > MediaTracker.maxWidth) {
-            gui.enableScissor(x, 0, x + MediaTracker.maxWidth + translationOffset(x, gui.pose().m20), y + font.lineHeight);
+        if ((MediaTracker.shouldShowLonger() || text.getString().equals(MediaTracker.track())) && width > MediaTracker.maxWidth) {
+            gui.enableScissor(x, y, x + MediaTracker.maxWidth + translationOffset(x, gui.pose().m20), y + font.lineHeight);
             gui.pose().pushMatrix();
-            gui.pose().translate(x - MediaTracker.currentScrollOffset(width), 0);
-            gui.drawString(font, MediaTracker.track(), 0, y, color);
+            gui.pose().translate(x - MediaTracker.currentScrollOffset(width), y);
+            gui.drawString(font, text, 0, 0, color);
             gui.pose().popMatrix();
             gui.disableScissor();
         } else {
@@ -108,7 +119,7 @@ public class NowPlayingToastMixin {
     }
 
     // In VulkanMod a matrix translation seems to not be applied to `enableScissor()`
-    // while in Vanilla it does, so I kinda apply it manually (float -> int, but it's enough ig)
+    // while in Vanilla it does, so I roughly apply it manually (float -> int, but it's enough ig)
     private static int translationOffset(int start, float offset) {
         if (MediaToastClient.hasVulkanMod) {
             if (-offset >= start) {

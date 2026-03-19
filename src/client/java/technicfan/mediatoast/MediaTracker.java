@@ -28,20 +28,20 @@ public class MediaTracker {
     protected static final float pixelPerMs = 1f / 96;
 
     private static SystemMediaInterface media;
-    private static Minecraft client;
     private static MediaSessionListener listener = new MediaSessionHandler();
     private static ConcurrentMap<String, String> sessions = new ConcurrentHashMap<>();
     private static Track currentTrack;
+    private static boolean toastShown;
 
-    protected static void init(Minecraft minecraft, Config config) {
-        client = minecraft;
+    protected static void init(Config config) {
         CONFIG = config;
 
         PlatformSupport support = SystemMediaFactory.getCurrentPlatformSupport();
         if (!support.available()) {
             MediaToastClient.LOGGER.warn("MediaToast is not working on your platform ({})",
                     SystemMediaFactory.getPlatformName());
-            MediaToastClient.LOGGER.warn("The reason given by mediainterface is: {}", support.reason());
+            MediaToastClient.LOGGER.warn(
+                    "The reason given by mediainterface is: {}", support.reason());
             return;
         }
 
@@ -98,7 +98,7 @@ public class MediaTracker {
 
     private static void showToast() {
         if (CONFIG.getEnabled() && currentTrack != null && currentTrack.changed()) {
-            ToastManager manager = client.getToastManager();
+            ToastManager manager = Minecraft.getInstance().getToastManager();
             if (manager != null) {
                 if (!currentTrack.name().isEmpty()) {
                     manager.showNowPlayingToast();
@@ -118,15 +118,21 @@ public class MediaTracker {
         return currentTrack != null && !currentTrack.name().isEmpty() ? currentTrack.name() : null;
     }
 
-    public static boolean show() {
-        return CONFIG.getEnabled() &&
-                (((currentTrack != null && !currentTrack.name().isEmpty()) || CONFIG.getReplace())
-                        || (!CONFIG.getReplace() &&
-                                client.options.getFinalSoundSourceVolume(SoundSource.MUSIC) <= 0));
+    public static boolean shouldShow() {
+        return CONFIG.getEnabled() && (track() != null || CONFIG.getReplace());
     }
 
-    public static boolean playing() {
+    public static boolean shouldShowLonger() {
+        return shouldShow() || (toastShown
+                && Minecraft.getInstance().options.getSoundSourceVolume(SoundSource.MUSIC) <= 0);
+    }
+
+    public static boolean isPlaying() {
         return currentTrack != null ? currentTrack.playing() : false;
+    }
+
+    public static void setToastShown(boolean value) {
+        toastShown = value;
     }
 
     protected static void setConfig(Config config) {

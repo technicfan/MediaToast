@@ -15,7 +15,8 @@ public class Config {
         this.preferredDisplay = "";
     }
     
-    private Config(boolean enabled, boolean replace, boolean onlyPreferred, String preferred, String preferredDisplay) {
+    private Config(boolean enabled, boolean replace, boolean onlyPreferred,
+            String preferred, String preferredDisplay) {
         this.enabled = enabled;
         this.replace = replace;
         this.onlyPreferred = onlyPreferred;

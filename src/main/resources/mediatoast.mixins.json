@@ -6,6 +6,7 @@
         "AnimationThingMixin",
         "MusicManagerAccessor",
         "MusicManagerMixin",
+        "NowPlayingToastAccessor",
         "NowPlayingToastMixin",
         "OptionsSubScreenAccessor",
         "PauseScreenMixin",

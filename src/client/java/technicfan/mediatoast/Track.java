@@ -21,7 +21,8 @@ public class Track {
         this.sessionId = busName;
         if (session != null) {
             this.controls = session.getControls();
-            this.name = session.getNowPlaying().isPresent() ? getTrackName(session.getNowPlaying().get()) : "";
+            this.name = session.getNowPlaying().isPresent()
+                    ? getTrackName(session.getNowPlaying().get()) : "";
             this.playing = controls.getPlaybackState().equals(PlaybackState.PLAYING);
         } else {
             this.controls = null;
@@ -32,7 +33,8 @@ public class Track {
         this.changed = true;
     }
 
-    private Track(String busName, MediaTransportControls controls, String name, long startTime, boolean active, boolean changed) {
+    private Track(String busName, MediaTransportControls controls,
+            String name, long startTime, boolean active, boolean changed) {
         this.sessionId = busName;
         this.name = name;
         this.controls = controls;
@@ -64,7 +66,7 @@ public class Track {
 
     protected void play() {
         if (controls != null)
-           controls.play();
+            controls.play();
     }
 
     protected void pause() {
@@ -87,7 +89,8 @@ public class Track {
         boolean playing = false;
         MediaSession session = MediaTracker.getSessionById(sessionId);
         if (session != null) {
-            name = session.getNowPlaying().isPresent() ? getTrackName(session.getNowPlaying().get()) : "";
+            name = session.getNowPlaying().isPresent() ?
+                    getTrackName(session.getNowPlaying().get()) : "";
             playing = controls.getPlaybackState().equals(PlaybackState.PLAYING);
         } else {
             name = "";
@@ -97,7 +100,9 @@ public class Track {
     }
 
     private static String getTrackName(NowPlaying info) {
-        return info.getArtist().isPresent() ? String.format("%s - %s", info.getArtist().get(), info.getTitle().get()) : info.getTitle().get();
+        return info.getArtist().isPresent() ?
+                String.format("%s - %s", info.getArtist().get(), info.getTitle().get())
+                        : info.getTitle().get();
     }
 
     protected Track update(NowPlaying info) {

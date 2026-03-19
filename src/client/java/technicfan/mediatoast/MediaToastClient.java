@@ -20,7 +20,6 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.KeyMapping;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.OptionInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -28,14 +27,18 @@ import net.minecraft.resources.ResourceLocation;
 public class MediaToastClient implements ClientModInitializer {
     public static final String MOD_ID = "mediatoast";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-    public static final boolean hasVulkanMod = FabricLoader.getInstance().getModContainer("vulkanmod").isPresent();
+    public static final boolean hasVulkanMod
+            = FabricLoader.getInstance().getModContainer("vulkanmod").isPresent();
 
     private static final File CONFIG_FILE = FabricLoader.getInstance()
             .getConfigDir().resolve(MOD_ID + ".json").toFile();
     //? if 1.21.8 {
-    /*private static final String MOD_CATEGORY = String.format("key.category.%s.%s", MOD_ID, MOD_ID);*/
-    //?} else
-    private static final KeyMapping.Category MOD_CATEGORY = KeyMapping.Category.register(ResourceLocation.fromNamespaceAndPath(MOD_ID, MOD_ID));
+    /*private static final String MOD_CATEGORY
+              = String.format("key.category.%s.%s", MOD_ID, MOD_ID);*/
+    //?} else {
+    private static final KeyMapping.Category MOD_CATEGORY
+            = KeyMapping.Category.register(ResourceLocation.fromNamespaceAndPath(MOD_ID, MOD_ID));
+    //?}
 
     private static OptionInstance<Boolean> enabledToggle;
     private static OptionInstance<Boolean> replaceToggle;
@@ -44,7 +47,7 @@ public class MediaToastClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         registerKeybindings();
-        MediaTracker.init(Minecraft.getInstance(), loadConfig());
+        MediaTracker.init(loadConfig());
         createToggles();
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
             MediaTracker.close();
@@ -106,17 +109,20 @@ public class MediaToastClient implements ClientModInitializer {
     }
 
     private static void createToggles() {
-        enabledToggle = OptionInstance.createBoolean("mediatoast.option.enable", OptionInstance.noTooltip(),
+        enabledToggle = OptionInstance.createBoolean(
+                "mediatoast.option.enable", OptionInstance.noTooltip(),
                 MediaTracker.getConfig().getEnabled(), (value) -> {
                     setEnabled(value);
                 });
         replaceToggle = OptionInstance.createBoolean("mediatoast.option.replace",
-                OptionInstance.cachedConstantTooltip(Component.translatable("mediatoast.option.replace.tooltip")),
+                OptionInstance.cachedConstantTooltip(
+                        Component.translatable("mediatoast.option.replace.tooltip")),
                 MediaTracker.getConfig().getReplace(), (value) -> {
                     setReplace(value);
                 });
         onlyPreferredToggle = OptionInstance.createBoolean("mediatoast.option.only_preferred",
-                OptionInstance.cachedConstantTooltip(Component.translatable("mediatoast.option.only_preferred.tooltip")),
+                OptionInstance.cachedConstantTooltip(
+                        Component.translatable("mediatoast.option.only_preferred.tooltip")),
                 MediaTracker.getConfig().getOnlyPreferred(), (value) -> {
                     setOnlyPreferred(value);
                 });
@@ -134,19 +140,22 @@ public class MediaToastClient implements ClientModInitializer {
         String initial = MediaTracker.getConfig().getPreferred();
         String initialDisplay = MediaTracker.getConfig().getDisplayName();
         return new OptionInstance<String>("mediatoast.option.preferred",
-            OptionInstance.cachedConstantTooltip(Component.translatable("mediatoast.option.preferred.tooltip")),
+            OptionInstance.cachedConstantTooltip(
+                    Component.translatable("mediatoast.option.preferred.tooltip")),
             (optionText, value) -> {
                 if (value.isEmpty()) {
                     return Component.translatable("mediatoast.option.preferred.none");
                 } else {
-                    String displayName = MediaTracker.getDisplayName(value, initial, initialDisplay);
-                    value = value.replaceFirst("org.mpris.MediaPlayer2.", "").replaceFirst("\\.exe$", "");
+                    String displayName
+                            = MediaTracker.getDisplayName(value, initial, initialDisplay);
+                    value = value.replaceFirst("org.mpris.MediaPlayer2.", "")
+                            .replaceFirst("\\.exe$", "");
                     if (displayName.isEmpty() && value.isEmpty()) {
                         return Component.translatable("mediatoast.option.preferred.unknown");
                     }
-                    return Component.literal(
-                            displayName.isEmpty() ? value.substring(0, 1).toUpperCase() + value.substring(1)
-                                    : displayName);
+                    return Component.literal(displayName.isEmpty() ?
+                                value.substring(0, 1).toUpperCase() + value.substring(1)
+                                        : displayName);
                 }
             }, new OptionInstance.LazyEnum<String>(() -> MediaTracker.getPlayerStream().toList(),
                     (value) -> Optional.of(value), Codec.STRING),

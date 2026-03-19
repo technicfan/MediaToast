@@ -22,7 +22,7 @@ public class MusicManagerMixin {
         )
     )
     private void showNowPlayingToast(ToastManager manager) {
-        if (!MediaTracker.show()) {
+        if (!MediaTracker.shouldShowLonger()) {
             manager.showNowPlayingToast();
         }
     }
@@ -39,7 +39,7 @@ public class MusicManagerMixin {
         )
     )
     private void toastShown(MusicManager tracker, boolean shown) {
-        if (!MediaTracker.show()) {
+        if (!MediaTracker.shouldShowLonger()) {
             ((MusicManagerAccessor) tracker).toastShown(shown);
         }
     }

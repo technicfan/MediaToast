@@ -45,9 +45,9 @@ public class NowPlayingToastMixin {
     //?}
 
     @Inject(method = "getNowPlayingString", at = @At("HEAD"), cancellable = true)
-    private static void getNowPlayingString(CallbackInfoReturnable<Component> cir) {
+    private static void getNowPlayingString(String key, CallbackInfoReturnable<Component> cir) {
         if (MediaTracker.shouldShowLonger())
-                cir.setReturnValue(Component.nullToEmpty(MediaTracker.track()));
+                cir.setReturnValue(Component.nullToEmpty(key));
     }
 
     @Inject(method = "showToast", at = @At("TAIL"))

@@ -2,7 +2,7 @@
 
 ## Description
 
-This (fabric) mod shows the media currently playing on your system using the vanilla music toast feature on 1.21.10 and 1.21.11 (currently).
+This (fabric) mod shows the media currently playing on your system using the vanilla music toast feature.
 
 To make it work, you also have to enable the toast in vanilla options.
 

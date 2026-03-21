@@ -10,7 +10,9 @@
         "NowPlayingToastMixin",
         "OptionsSubScreenAccessor",
         "PauseScreenMixin",
-        "SoundOptionsScreenMixin"
+        "SoundOptionsScreenMixin",
+        "ToastInstanceMixin",
+        "ToastManagerMixin"
     ],
     "injectors": {
         "defaultRequire": 1

@@ -50,16 +50,6 @@ public class NowPlayingToastMixin {
                 cir.setReturnValue(Component.nullToEmpty(key));
     }
 
-    @Inject(method = "showToast", at = @At("TAIL"))
-    private void showToast(CallbackInfo ci) {
-        MediaTracker.setToastShown(true);
-    }
-
-    @Inject(method = "onFinishedRendering", at = @At("TAIL"))
-    private void onFinishedRendering(CallbackInfo ci) {
-        MediaTracker.setToastShown(false);
-    }
-
     //? if <=1.21.10 {
     @Inject(
         method = "tickMusicNotes",

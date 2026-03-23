@@ -4,11 +4,9 @@
     "compatibilityLevel": "JAVA_21",
     "mixins": [
         "AnimationThingMixin",
-        "MusicManagerAccessor",
         "MusicManagerMixin",
         "NowPlayingToastAccessor",
         "NowPlayingToastMixin",
-        "OptionsSubScreenAccessor",
         "PauseScreenMixin",
         "SoundOptionsScreenMixin",
         "ToastInstanceMixin",

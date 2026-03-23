@@ -1,6 +1,7 @@
 package technicfan.mediatoast.mixin;
 
 import net.minecraft.client.OptionInstance;
+import net.minecraft.client.gui.screens.options.OptionsSubScreen;
 import net.minecraft.client.gui.screens.options.SoundOptionsScreen;
 import technicfan.mediatoast.MediaToastClient;
 
@@ -10,14 +11,16 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(SoundOptionsScreen.class)
-public class SoundOptionsScreenMixin {
+public abstract class SoundOptionsScreenMixin extends OptionsSubScreen {
+    private SoundOptionsScreenMixin() {
+        super(null, null, null);
+    }
+
     @Inject(method = "addOptions", at = @At("TAIL"))
     private void addOptions(CallbackInfo ci) {
-        ((OptionsSubScreenAccessor) this).list()
-                .addSmall(new OptionInstance[] { MediaToastClient.getEnabledToggle(),
-                        MediaToastClient.getReplaceToggle() });
-        ((OptionsSubScreenAccessor) this).list()
-                .addSmall(new OptionInstance[] { MediaToastClient.getPreferredToggle(),
-                        MediaToastClient.getOnlyPreferredToggle() });
+        this.list.addSmall(new OptionInstance[] { MediaToastClient.getEnabledToggle(),
+                MediaToastClient.getReplaceToggle() });
+        this.list.addSmall(new OptionInstance[] { MediaToastClient.getPreferredToggle(),
+                MediaToastClient.getOnlyPreferredToggle() });
     }
 }

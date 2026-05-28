@@ -98,7 +98,11 @@ public class MediaTracker {
 
     private static void showToast() {
         if (CONFIG.getEnabled() && currentTrack != null && currentTrack.changed()) {
+            //? if <=26.1 {
             ToastManager manager = Minecraft.getInstance().getToastManager();
+            //?} else {
+            /*ToastManager manager = Minecraft.getInstance().gui.toastManager();*/
+            //?}
             if (manager != null) {
                 if (!currentTrack.name().isEmpty()) {
                     manager.showNowPlayingToast();

@@ -23,7 +23,7 @@ stonecutter {
 
     create (getRootProject()) { 
         versions "1.21.8", "1.21.10", "1.21.11"
-        versions "26.1", "26.2" buildscript "unobfuscated.gradle"
+        versions "26.1", "26.2", "26.3-snapshot-7" buildscript "unobfuscated.gradle"
         vcsVersion = "1.21.10"
     }
 }

@@ -44,6 +44,11 @@ stonecutter {
        replace "GuiGraphics", "GuiGraphicsExtractor"
        replace "drawString", "text"
     }
+    replacements.string(current.parsed.matches('>26.2')) {
+      replace "blaze3d.textures", "renderpearl.api.textures"
+      replace "blaze3d.buffers", "renderpearl.api.buffers"
+      replace "KEYSYM", "KEYBOARD"
+    }
 }
 
 processResources {
